@@ -57,7 +57,7 @@ Function Sync-FilesandFoldersToS3 {
         Exit
     }
     
-}
+} #End Sync-FilesandFoldersToS3
 
 Function Get-S3ObjectURL {
 param(
@@ -93,4 +93,4 @@ $S3ObjectPermissions = Get-S3ACL -BucketName $BucketName -Key $Key
     [void]$S3ObjectsArr.Add($S3PropertyObject)
   } #End ForEach
 Return $S3ObjectsArr | Select-Object Key,PublicReadable,BucketPathStyle,BucketvHostStyle
-}
+} #End Get-S3ObjectURL
