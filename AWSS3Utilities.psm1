@@ -76,13 +76,21 @@ $S3ObjectsArr = New-Object System.Collections.ArrayList
 
 ForEach ($S3Object in $S3Objects) {
 $Key = $S3Object.Key
+$S3ObjectPermissions = Get-S3ACL -BucketName $BucketName -Key $Key
+    If ($S3ObjectPermissions.Grants.Permission.HeaderName -contains "x-amz-grant-read" -AND $S3ObjectPermissions.Grants.Grantee.Uri -contains "http://acs.amazonaws.com/groups/global/AllUsers") {
+        $PubliclyReadable = $True
+    }
+    Else {
+        $PubliclyReadable = $False
+    }
     $S3ObjectProperties = @{
         "Key" = $Key
+        "PublicReadable" = $PubliclyReadable
         "BucketPathStyle" = "https://s3-$BucketRegion.amazonaws.com/$BucketName/$Key"
         "BucketvHostStyle" = "https://$BucketName.s3-$BucketRegion.amazonaws.com/$Key"
     }
     $S3PropertyObject = New-Object PSObject -Property $S3ObjectProperties
     [void]$S3ObjectsArr.Add($S3PropertyObject)
   } #End ForEach
-Return $S3ObjectsArr | Select-Object Key,BucketPathStyle,BucketvHostStyle
+Return $S3ObjectsArr | Select-Object Key,PublicReadable,BucketPathStyle,BucketvHostStyle
 }
