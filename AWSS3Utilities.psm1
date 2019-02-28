@@ -36,10 +36,7 @@ Function Sync-FilesToS3 {
         Write-Progress -Activity "Syncing files to S3" -Status "Syncing $File to $BucketName" -PercentComplete $Percentage
         Write-S3Object -BucketName $BucketName -File $File.FullName
     } #End ForEach
-    
 } #End Sync-FilesToS3
-
-
 
 Function Sync-FilesandFoldersToS3 {
 [CmdletBinding()]
@@ -60,4 +57,32 @@ Function Sync-FilesandFoldersToS3 {
         Exit
     }
     
+}
+
+Function Get-S3ObjectURL {
+param(
+  [Parameter(HelpMessage="Specify the S3 bucket to write to")]
+  [ValidateNotNullOrEmpty()]
+  [string]$BucketName,
+  
+  [Parameter(HelpMessage="Specify the AWS API user profile name")]
+  [ValidateNotNullOrEmpty()]
+  [string]$ProfileName
+  )
+  
+$BucketRegion = Get-S3BucketLocation -BucketName $BucketName
+$S3Objects = Get-S3Object -BucketName $BucketName
+$S3ObjectsArr = New-Object System.Collections.ArrayList
+
+ForEach ($S3Object in $S3Objects) {
+$Key = $S3Object.Key
+    $S3ObjectProperties = @{
+        "Key" = $Key
+        "BucketPathStyle" = "https://s3-$BucketRegion.amazonaws.com/$BucketName/$Key"
+        "BucketvHostStyle" = "https://$BucketName.s3-$BucketRegion.amazonaws.com/$Key"
+    }
+    $S3PropertyObject = New-Object PSObject -Property $S3ObjectProperties
+    [void]$S3ObjectsArr.Add($S3PropertyObject)
+  } #End ForEach
+Return $S3ObjectsArr | Select-Object Key,BucketPathStyle,BucketvHostStyle
 }
